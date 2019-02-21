@@ -159,3 +159,23 @@ variable "replication_group_id" {
   description = "Replication group ID with the following constraints: \nA name must contain from 1 to 20 alphanumeric characters or hyphens. \n The first character must be a letter. \n A name cannot end with a hyphen or contain two consecutive hyphens."
   default     = ""
 }
+
+variable "snapshot_window" {
+  description = "The daily time range (in UTC) during which ElastiCache will begin taking a daily snapshot."
+  default     = ""
+}
+
+variable "snapshot_retention_limit" {
+  description = "The number of days for which ElastiCache will retain automatic cache cluster snapshots before deleting them."
+  default     = "0"
+}
+
+variable "snapshot_arns" {
+  description = "Amazon Resource Name (ARN) of a Redis RDB snapshot file stored in Amazon S3."
+  default     = []
+}
+
+variable "snapshot_name" {
+  description = "The name of a snapshot from which to restore data into the new node group."
+  default     = ""
+}

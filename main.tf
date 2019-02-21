@@ -67,6 +67,10 @@ resource "aws_elasticache_replication_group" "default" {
   engine_version                = "${var.engine_version}"
   at_rest_encryption_enabled    = "${var.at_rest_encryption_enabled}"
   transit_encryption_enabled    = "${var.transit_encryption_enabled}"
+  snapshot_window               = "${var.snapshot_window}"
+  snapshot_retention_limit      = "${var.snapshot_retention_limit}"
+  snapshot_arns                 = "${var.snapshot_arns}"
+  snapshot_name                 = "${var.snapshot_name}"
 
   tags = "${module.label.tags}"
 }
