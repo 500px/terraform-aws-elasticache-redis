@@ -25,14 +25,12 @@ variable "security_groups" {
 }
 
 variable "vpc_id" {
-  default     = "REQUIRED"
   description = "AWS VPC id"
 }
 
 variable "subnets" {
   type        = "list"
   description = "AWS subnet ids"
-  default     = []
 }
 
 variable "maintenance_window" {
