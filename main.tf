@@ -151,11 +151,22 @@ resource "aws_cloudwatch_metric_alarm" "cache_memory" {
 
 module "dns" {
   source    = "git::https://github.com/cloudposse/terraform-aws-route53-cluster-hostname.git?ref=tags/0.2.1"
-  enabled   = "${var.enabled == "true" && length(var.zone_id) > 0 ? "true" : "false"}"
+  enabled   = "${var.enabled == "true" && var.transit_encryption_enabled == "false" && length(var.zone_id) > 0 ? "true" : "false"}"
   namespace = "${var.namespace}"
   name      = "redis-${var.name}"
   stage     = "${var.stage}"
   ttl       = 60
   zone_id   = "${var.zone_id}"
   records   = ["${aws_elasticache_replication_group.default.*.primary_endpoint_address}"]
+}
+
+module "dns" {
+  source    = "git::https://github.com/cloudposse/terraform-aws-route53-cluster-hostname.git?ref=tags/0.2.1"
+  enabled   = "${var.enabled == "true" && var.transit_encryption_enabled == "true" && length(var.zone_id) > 0 ? "true" : "false"}"
+  namespace = "${var.namespace}"
+  name      = "redis-${var.name}"
+  stage     = "${var.stage}"
+  ttl       = 60
+  zone_id   = "${var.zone_id}"
+  records   = ["${aws_elasticache_replication_group.encrypt.*.primary_endpoint_address}"]
 }
