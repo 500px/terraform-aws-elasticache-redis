@@ -160,7 +160,7 @@ module "dns" {
   records   = ["${aws_elasticache_replication_group.default.*.primary_endpoint_address}"]
 }
 
-module "dns" {
+module "dns_encrypt" {
   source    = "git::https://github.com/cloudposse/terraform-aws-route53-cluster-hostname.git?ref=tags/0.2.1"
   enabled   = "${var.enabled == "true" && var.transit_encryption_enabled == "true" && length(var.zone_id) > 0 ? "true" : "false"}"
   namespace = "${var.namespace}"
