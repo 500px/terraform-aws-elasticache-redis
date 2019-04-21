@@ -160,6 +160,20 @@ module "dns" {
   records   = ["${aws_elasticache_replication_group.default.*.primary_endpoint_address}"]
 }
 
+locals {
+  ro_record_base = "${replace(element(aws_elasticache_replication_group.default.*.primary_endpoint_address, 0), ".ng.", ".")}"
+}
+
+resource "aws_route53_record" "dns_ro" {
+  count = "${var.enabled == "true" && var.transit_encryption_enabled == "false" && length(var.zone_id) > 0 ? var.cluster_size : 0}"
+
+  zone_id = "${var.zone_id}"
+  name    = "redis-${var.name}-ro-${count.index + 1}"
+  type    = "CNAME"
+  ttl     = 60
+  records = ["${replace(local.ro_record_base, "/^[^.]+/", element(flatten(aws_elasticache_replication_group.default.*.member_clusters), count.index))}"]
+}
+
 module "dns_encrypt" {
   source    = "git::https://github.com/cloudposse/terraform-aws-route53-cluster-hostname.git?ref=tags/0.2.1"
   enabled   = "${var.enabled == "true" && var.transit_encryption_enabled == "true" && length(var.zone_id) > 0 ? "true" : "false"}"
