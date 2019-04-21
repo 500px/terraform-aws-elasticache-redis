@@ -48,12 +48,16 @@ resource "aws_elasticache_parameter_group" "default" {
   parameter = "${var.parameter}"
 }
 
+locals {
+  replication_group_id = "${var.replication_group_id == "" ? module.label.id : var.replication_group_id}"
+}
+
 # workaround silly terraform bug, see issue #35 in upstream repo
 resource "aws_elasticache_replication_group" "encrypt" {
   count = "${var.enabled == "true" && var.transit_encryption_enabled == "true" ? 1 : 0}"
 
   auth_token                    = "${var.auth_token}"
-  replication_group_id          = "${var.replication_group_id == "" ? module.label.id : var.replication_group_id}"
+  replication_group_id          = "${local.replication_group_id}"
   replication_group_description = "${module.label.id}"
   node_type                     = "${var.instance_type}"
   number_cache_clusters         = "${var.cluster_size}"
@@ -79,7 +83,7 @@ resource "aws_elasticache_replication_group" "encrypt" {
 resource "aws_elasticache_replication_group" "default" {
   count = "${var.enabled == "true" && var.transit_encryption_enabled == "false" ? 1 : 0}"
 
-  replication_group_id          = "${var.replication_group_id == "" ? module.label.id : var.replication_group_id}"
+  replication_group_id          = "${local.replication_group_id}"
   replication_group_description = "${module.label.id}"
   node_type                     = "${var.instance_type}"
   number_cache_clusters         = "${var.cluster_size}"
@@ -171,7 +175,7 @@ resource "aws_route53_record" "dns_ro" {
   name    = "redis-${var.name}-ro-${count.index + 1}"
   type    = "CNAME"
   ttl     = 60
-  records = ["${replace(local.ro_record_base, "/^[^.]+/", element(flatten(aws_elasticache_replication_group.default.*.member_clusters), count.index))}"]
+  records = ["${replace(local.ro_record_base, local.replication_group_id, element(flatten(aws_elasticache_replication_group.default.*.member_clusters), count.index))}"]
 }
 
 module "dns_encrypt" {
