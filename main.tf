@@ -155,12 +155,12 @@ resource "aws_cloudwatch_metric_alarm" "cache_memory" {
 
 locals {
   dns_enabled = "${var.enabled == "true" && var.transit_encryption_enabled == "false" && length(var.zone_id) > 0 ? "true" : "false"}"
-  ro_record_base = "${var.dns_enabled == "true" ? replace(element(aws_elasticache_replication_group.default.*.primary_endpoint_address, 0), ".ng.", ".") : ""}"
+  ro_record_base = "${local.dns_enabled == "true" ? replace(element(aws_elasticache_replication_group.default.*.primary_endpoint_address, 0), ".ng.", ".") : ""}"
 }
   
 module "dns" {
   source    = "git::https://github.com/cloudposse/terraform-aws-route53-cluster-hostname.git?ref=tags/0.2.1"
-  enabled   = "${var.dns_enabled}"
+  enabled   = "${local.dns_enabled}"
   namespace = "${var.namespace}"
   name      = "redis-${var.name}"
   stage     = "${var.stage}"
@@ -181,7 +181,7 @@ resource "aws_route53_record" "dns_ro" {
 
 module "dns_encrypt" {
   source    = "git::https://github.com/cloudposse/terraform-aws-route53-cluster-hostname.git?ref=tags/0.2.1"
-  enabled   = "${var.dns_enabled}"
+  enabled   = "${var.enabled == "true" && var.transit_encryption_enabled == "true" && length(var.zone_id) > 0 ? "true" : "false"}"
   namespace = "${var.namespace}"
   name      = "redis-${var.name}"
   stage     = "${var.stage}"
