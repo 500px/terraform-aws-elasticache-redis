@@ -155,7 +155,7 @@ resource "aws_cloudwatch_metric_alarm" "cache_memory" {
 
 locals {
   dns_enabled    = "${var.enabled == "true" && var.transit_encryption_enabled == "false" && length(var.zone_id) > 0 ? "true" : "false"}"
-  ro_record_base = "${local.dns_enabled == "true" ? replace(element(aws_elasticache_replication_group.default.*.primary_endpoint_address, 0), ".ng.", ".") : ""}"
+  ro_record_base = "${local.dns_enabled == "true" ? replace(element(concat(aws_elasticache_replication_group.default.*.primary_endpoint_address, list("")), 0), ".ng.", ".") : ""}"
 }
 
 module "dns" {
