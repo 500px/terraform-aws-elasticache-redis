@@ -16,7 +16,7 @@ module "label" {
 resource "aws_security_group" "default" {
   count  = "${var.enabled == "true" ? 1 : 0}"
   vpc_id = "${var.vpc_id}"
-  name   = "${module.label.id}"
+  name   = "redis-${module.label.id}"
 
   ingress {
     from_port       = "${var.port}"              # Redis
