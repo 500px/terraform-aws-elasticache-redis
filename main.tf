@@ -11,7 +11,9 @@ module "label" {
 }
 
 locals {
-  name = "${var.label_id == "true" ? module.label.name : module.label.id}"
+  name = "redis-${var.label_id == "true" ? module.label.name : module.label.id}"
+
+  replication_group_id   = "${var.replication_group_id == "" ? local.replication_group_name : var.replication_group_id}"
 }
 
 #
@@ -20,7 +22,7 @@ locals {
 resource "aws_security_group" "default" {
   count  = "${var.enabled == "true" ? 1 : 0}"
   vpc_id = "${var.vpc_id}"
-  name   = "redis-${local.name}"
+  name   = "${local.name}"
 
   ingress {
     from_port       = "${var.port}"              # Redis
@@ -50,10 +52,6 @@ resource "aws_elasticache_parameter_group" "default" {
   name      = "${local.name}"
   family    = "${var.family}"
   parameter = "${var.parameter}"
-}
-
-locals {
-  replication_group_id = "${var.replication_group_id == "" ? local.name : var.replication_group_id}"
 }
 
 # workaround silly terraform bug, see issue #35 in upstream repo
@@ -166,7 +164,7 @@ module "dns" {
   source    = "git::https://github.com/cloudposse/terraform-aws-route53-cluster-hostname.git?ref=tags/0.2.1"
   enabled   = "${local.dns_enabled}"
   namespace = "${var.namespace}"
-  name      = "redis-${var.name}"
+  name      = "${local.name}"
   stage     = "${var.stage}"
   ttl       = 60
   zone_id   = "${var.zone_id}"
@@ -177,7 +175,7 @@ resource "aws_route53_record" "dns_ro" {
   count = "${local.dns_enabled == "true" ? var.cluster_size : 0}"
 
   zone_id = "${var.zone_id}"
-  name    = "redis-${var.name}-ro-${count.index + 1}"
+  name    = "${local.name}-ro-${count.index + 1}"
   type    = "CNAME"
   ttl     = 60
   records = ["${replace(local.ro_record_base, local.replication_group_id, element(flatten(aws_elasticache_replication_group.default.*.member_clusters), count.index))}"]
@@ -187,7 +185,7 @@ module "dns_encrypt" {
   source    = "git::https://github.com/cloudposse/terraform-aws-route53-cluster-hostname.git?ref=tags/0.2.1"
   enabled   = "${var.enabled == "true" && var.transit_encryption_enabled == "true" && length(var.zone_id) > 0 ? "true" : "false"}"
   namespace = "${var.namespace}"
-  name      = "redis-${var.name}"
+  name      = "${local.name}"
   stage     = "${var.stage}"
   ttl       = 60
   zone_id   = "${var.zone_id}"
