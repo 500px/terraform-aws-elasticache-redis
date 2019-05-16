@@ -10,13 +10,17 @@ module "label" {
   tags       = "${var.tags}"
 }
 
+locals {
+  name = "${var.label_id == "true" ? module.label.name : module.label.id}"
+}
+
 #
 # Security Group Resources
 #
 resource "aws_security_group" "default" {
   count  = "${var.enabled == "true" ? 1 : 0}"
   vpc_id = "${var.vpc_id}"
-  name   = "redis-${module.label.id}"
+  name   = "redis-${local.name}"
 
   ingress {
     from_port       = "${var.port}"              # Redis
@@ -37,19 +41,19 @@ resource "aws_security_group" "default" {
 
 resource "aws_elasticache_subnet_group" "default" {
   count      = "${var.enabled == "true" ? 1 : 0}"
-  name       = "${module.label.id}"
+  name       = "${local.name}"
   subnet_ids = ["${var.subnets}"]
 }
 
 resource "aws_elasticache_parameter_group" "default" {
   count     = "${var.enabled == "true" ? 1 : 0}"
-  name      = "${module.label.id}"
+  name      = "${local.name}"
   family    = "${var.family}"
   parameter = "${var.parameter}"
 }
 
 locals {
-  replication_group_id = "${var.replication_group_id == "" ? module.label.id : var.replication_group_id}"
+  replication_group_id = "${var.replication_group_id == "" ? local.name : var.replication_group_id}"
 }
 
 # workaround silly terraform bug, see issue #35 in upstream repo
@@ -58,7 +62,7 @@ resource "aws_elasticache_replication_group" "encrypt" {
 
   auth_token                    = "${var.auth_token}"
   replication_group_id          = "${local.replication_group_id}"
-  replication_group_description = "${module.label.id}"
+  replication_group_description = "${local.name}"
   node_type                     = "${var.instance_type}"
   number_cache_clusters         = "${var.cluster_size}"
   port                          = "${var.port}"
@@ -84,7 +88,7 @@ resource "aws_elasticache_replication_group" "default" {
   count = "${var.enabled == "true" && var.transit_encryption_enabled == "false" ? 1 : 0}"
 
   replication_group_id          = "${local.replication_group_id}"
-  replication_group_description = "${module.label.id}"
+  replication_group_description = "${local.name}"
   node_type                     = "${var.instance_type}"
   number_cache_clusters         = "${var.cluster_size}"
   port                          = "${var.port}"
@@ -111,7 +115,7 @@ resource "aws_elasticache_replication_group" "default" {
 #
 resource "aws_cloudwatch_metric_alarm" "cache_cpu" {
   count               = "${var.enabled == "true" ? 1 : 0}"
-  alarm_name          = "${module.label.id}-cpu-utilization"
+  alarm_name          = "${local.name}-cpu-utilization"
   alarm_description   = "Redis cluster CPU utilization"
   comparison_operator = "GreaterThanThreshold"
   evaluation_periods  = "1"
@@ -123,7 +127,7 @@ resource "aws_cloudwatch_metric_alarm" "cache_cpu" {
   threshold = "${var.alarm_cpu_threshold_percent}"
 
   dimensions {
-    CacheClusterId = "${module.label.id}"
+    CacheClusterId = "${local.name}"
   }
 
   alarm_actions = ["${var.alarm_actions}"]
@@ -133,7 +137,7 @@ resource "aws_cloudwatch_metric_alarm" "cache_cpu" {
 
 resource "aws_cloudwatch_metric_alarm" "cache_memory" {
   count               = "${var.enabled == "true" ? 1 : 0}"
-  alarm_name          = "${module.label.id}-freeable-memory"
+  alarm_name          = "${local.name}-freeable-memory"
   alarm_description   = "Redis cluster freeable memory"
   comparison_operator = "LessThanThreshold"
   evaluation_periods  = "1"
@@ -145,7 +149,7 @@ resource "aws_cloudwatch_metric_alarm" "cache_memory" {
   threshold = "${var.alarm_memory_threshold_bytes}"
 
   dimensions {
-    CacheClusterId = "${module.label.id}"
+    CacheClusterId = "${local.name}"
   }
 
   alarm_actions = ["${var.alarm_actions}"]

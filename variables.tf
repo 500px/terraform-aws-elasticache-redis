@@ -18,6 +18,11 @@ variable "name" {
   description = "Name"
 }
 
+variable "label_id" {
+  default     = true
+  description = "Set to false to use direct name rather than label generated id"
+}
+
 variable "security_groups" {
   type        = "list"
   default     = []
