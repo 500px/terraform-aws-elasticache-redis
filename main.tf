@@ -13,7 +13,7 @@ module "label" {
 locals {
   name = "redis-${var.label_id == "true" ? module.label.name : module.label.id}"
 
-  replication_group_id   = "${var.replication_group_id == "" ? local.name : var.replication_group_id}"
+  replication_group_id = "${coalesce(var.replication_group_id, local.name)}"
 }
 
 #
