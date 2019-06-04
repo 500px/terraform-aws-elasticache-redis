@@ -79,6 +79,12 @@ resource "aws_elasticache_replication_group" "encrypt" {
   snapshot_arns                 = "${var.snapshot_arns}"
   snapshot_name                 = "${var.snapshot_name}"
 
+  timeouts {
+    create = "${var.create_timeouts}"
+    delete = "${var.delete_timeouts}"
+    update = "${var.update_timeouts}"
+  }
+
   tags = "${module.label.tags}"
 }
 
@@ -104,6 +110,12 @@ resource "aws_elasticache_replication_group" "default" {
   snapshot_retention_limit      = "${var.snapshot_retention_limit}"
   snapshot_arns                 = "${var.snapshot_arns}"
   snapshot_name                 = "${var.snapshot_name}"
+
+  timeouts {
+    create = "${var.create_timeouts}"
+    delete = "${var.delete_timeouts}"
+    update = "${var.update_timeouts}"
+  }
 
   tags = "${module.label.tags}"
 }

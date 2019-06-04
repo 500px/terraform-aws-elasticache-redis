@@ -182,3 +182,18 @@ variable "snapshot_name" {
   description = "The name of a snapshot from which to restore data into the new node group."
   default     = ""
 }
+
+variable "create_timeouts" {
+  description = "How long to wait for a replication group to be created."
+  default     = "60m"
+}
+
+variable "delete_timeouts" {
+  description = "How long to wait for a replication group to be deleted."
+  default     = "40m"
+}
+
+variable "update_timeouts" {
+  description = "How long to wait for a replication group to be updated."
+  default     = "40m"
+}
